@@ -12,6 +12,7 @@ from .database import SessionLocal, engine, get_db
 models.Base.metadata.create_all(bind=engine)
 
 frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+frontend_url = "https://alexprena.github.io/myQuizApp/quiz?quizId="
 
 app = FastAPI(
     title="German Quiz API",
@@ -49,7 +50,7 @@ async def parse_and_create_quiz(
         # Create the quiz in the database
         db_quiz = crud.create_quiz(db=db, quiz=parsed_quiz)
         
-        return {"quiz_id": db_quiz.id, "message": "Quiz created successfully", "frontend_url": f"{frontend_url}/{db_quiz.id}"}
+        return {"quiz_id": db_quiz.id, "message": "Quiz created successfully", "frontend_url": f"{frontend_url}{db_quiz.id}"}
         
     except ValueError as e:
         raise HTTPException(
