@@ -19,13 +19,14 @@ app = FastAPI(
 async def root():
     return {"message": "German Quiz API is running!"}
 
-@app.post("/quizzes/parse", response_model=schemas.QuizResponse)
+@app.post("/quizzes/parse")
 async def parse_and_create_quiz(
     quiz_input: schemas.QuizTextInput,
     db: Session = Depends(get_db)
 ):
     """
     Parse quiz text and create a new quiz in the database
+    Returns the quiz ID for the created quiz
     """
     try:
         # Parse the text
@@ -35,7 +36,7 @@ async def parse_and_create_quiz(
         # Create the quiz in the database
         db_quiz = crud.create_quiz(db=db, quiz=parsed_quiz)
         
-        return db_quiz
+        return {"quiz_id": db_quiz.id, "message": "Quiz created successfully"}
         
     except ValueError as e:
         raise HTTPException(
