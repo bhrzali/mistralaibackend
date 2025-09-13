@@ -5,7 +5,7 @@ from .schemas import QuizCreate, QuestionCreate, OptionCreate
 class QuizTextParser:
     def __init__(self):
         self.patterns = {
-            'quiz_header': re.compile(r'German Quiz Generated on: (.+)\nNumber of Questions: (\d+)\nContent Source: (.+)', re.MULTILINE),
+            'quiz_header': re.compile(r'(\w+) Quiz Generated on: (.+)\nNumber of Questions: (\d+)\nContent Source: (.+)', re.MULTILINE),
             'topic': re.compile(r'TOPIC: (.+)', re.MULTILINE),
             'explanation': re.compile(r'EXPLANATION: (.+?)(?=Question \d+|$)', re.MULTILINE | re.DOTALL),
             'question_block': re.compile(r'Question (\d+)\nPrompt: (.+?)\nA\) (.+?)\nB\) (.+?)\nC\) (.+?)\nD\) (.+?)\nAnswer: ([ABCD])\nExplanation:', re.MULTILINE | re.DOTALL),
@@ -20,9 +20,10 @@ class QuizTextParser:
         if not header_match:
             raise ValueError("Could not find quiz header information")
         
-        generated_date = header_match.group(1).strip()
-        number_of_questions = int(header_match.group(2))
-        content_source = header_match.group(3).strip()
+        language = header_match.group(1).strip()
+        generated_date = header_match.group(2).strip()
+        number_of_questions = int(header_match.group(3))
+        content_source = header_match.group(4).strip()
         
         # Extract topic
         topic_match = self.patterns['topic'].search(text)
@@ -35,7 +36,7 @@ class QuizTextParser:
         explanation = explanation_match.group(1).strip() if explanation_match else None
         
         # Create title
-        title = f"German Quiz - {topic} ({generated_date})"
+        title = f"{language} Quiz - {topic} ({generated_date})"
         
         # Parse questions
         questions = self._parse_questions(text)
