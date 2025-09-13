@@ -1,7 +1,9 @@
 from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List
 import uvicorn
+import os
 
 from . import crud, models, schemas, parser
 from .database import SessionLocal, engine, get_db
@@ -9,10 +11,21 @@ from .database import SessionLocal, engine, get_db
 # Create database tables
 models.Base.metadata.create_all(bind=engine)
 
+frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+
 app = FastAPI(
     title="German Quiz API",
     description="API for managing German language quizzes",
     version="1.0.0"
+)
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
 )
 
 @app.get("/")
@@ -36,7 +49,7 @@ async def parse_and_create_quiz(
         # Create the quiz in the database
         db_quiz = crud.create_quiz(db=db, quiz=parsed_quiz)
         
-        return {"quiz_id": db_quiz.id, "message": "Quiz created successfully"}
+        return {"quiz_id": db_quiz.id, "message": "Quiz created successfully", "frontend_url": f"{frontend_url}/{db_quiz.id}"}
         
     except ValueError as e:
         raise HTTPException(
